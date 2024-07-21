@@ -72,3 +72,14 @@ export function changeColor(color:any, increment:number) {
     const rgb = hslToRgb(hsl.h, hsl.s, hsl.l);
     return rgb;
   }
+
+export function randomColor() {
+    const r = Math.random();
+    const g = Math.random();
+    const b = Math.random();
+    return {
+        r,
+        g,
+        b
+    }
+}

@@ -1,12 +1,20 @@
-import { changeColor } from "./colorTools";
+import { changeColor, randomColor } from "./colorTools";
+import nerdAlertImg from './images/nerdalert';
+import ratImg from './images/ratthew';
 
 const TIME_LENGTH = 50;
 const RUN_SPEED = 1;
 
+interface method {
+  name: string;
+  value: number;
+}
+
 type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNode;
+const supportedShapes = ["RECTANGLE", "ELLIPSE", "POLYGON", "STAR", "VECTOR"];
 
 const makeRandom = () => {
-  return (Math.random() * 3 - 1.5);
+  return (Math.random() * 3 - 1);
 }
 
 function getRandomAlphanumeric(): string {
@@ -19,9 +27,9 @@ function clone(val: any) {
   return JSON.parse(JSON.stringify(val))
 }
 
-interface method {
-  name: string;
-  value: number;
+function randomImage() {
+  const images = [nerdAlertImg, ratImg];
+  return images[Math.floor(Math.random() * images.length)];
 }
 
 class DistortNode<T extends SceneNode>{
@@ -34,9 +42,9 @@ class DistortNode<T extends SceneNode>{
 
   constructor(node: T) {
     this.node = node;
-    this.x = makeRandom() * 5;
+    this.x = makeRandom();
     this.y = makeRandom();
-    this.scaleFactor = makeRandom() * 0.5;
+    this.scaleFactor = makeRandom();
     this.methods = [
       {
         name: "move",
@@ -53,10 +61,10 @@ class DistortNode<T extends SceneNode>{
     }) as method).name;
     return selected ? selected : "";
   }
-  reset() {
-    this.x = makeRandom() * 5;
+  set() {
+    this.x = makeRandom();
     this.y = makeRandom();
-    this.scaleFactor = makeRandom() * 0.5;
+    this.scaleFactor = makeRandom();
   }
   moveX() {
     this.node.x = this.node.x + this.x;
@@ -69,7 +77,7 @@ class DistortNode<T extends SceneNode>{
       this.running = true;
       // @ts-ignore
       this[funcName]();
-      if (count < 0) {
+      if (count < 0 || funcName === "imageFill") {
         this.running = false;
         callback();
         return true;
@@ -83,11 +91,12 @@ class DistortShape extends DistortNode<ShapeNode> {
   constructor(node: ShapeNode) {
     super(node);
     this.methods = [
-      {name: "moveX",value: 10},
-      {name: "moveY",value: 15},
-      {name: "resize",value: 10},
-      {name: "color",value: 5},
-      {name: "rotate",value: 5}
+      {name: "moveX", value: 10},
+      {name: "moveY", value: 15},
+      {name: "resize", value: 10},
+      {name: "color", value: 5},
+      {name: "rotate", value: 5},
+      {name: "imageFill", value: 5},
     ]
   }
   resize() {
@@ -95,15 +104,36 @@ class DistortShape extends DistortNode<ShapeNode> {
   }
   color() {
     const fill = clone(this.node.fills);
-    if (fill[0] && fill[0].type === "SOLID") {
-      fill[0].color = changeColor(fill[0].color, this.scaleFactor);
-      this.node.fills = [
-        fill[0]
-      ]
+    if (fill[0]) {
+      if (fill[0].type === "SOLID") { 
+        fill[0].color = changeColor(fill[0].color, this.scaleFactor * 0.25);
+        this.node.fills = [
+          fill[0]
+        ];
+      }
+      else {
+        const color = randomColor();
+        this.node.fills = [{
+          type: 'SOLID',
+          color
+        }]
+      }
     }
   }
   rotate() {
     this.node.rotation = this.node.rotation + this.scaleFactor / 2;
+  }
+  imageFill() {
+    const image = figma.createImage(
+      figma.base64Decode(randomImage())
+    );
+    this.node.fills = [
+      {
+        type: 'IMAGE',
+        imageHash: image.hash,
+        scaleMode: 'FILL'
+      }
+    ]
   }
 }
 
@@ -115,7 +145,7 @@ class DistortText extends DistortNode<TextNode> {
       {name: "moveY",value: 15},
       {name: "resize",value: 10},
       {name: "color",value: 5},
-      {name: "randomCharacter",value: 20}
+      {name: "randomCharacter", value: 10}
     ]
   }
   resize() {
@@ -131,11 +161,13 @@ class DistortText extends DistortNode<TextNode> {
     }
   }
   randomCharacter() {
-    const charLength = this.node.characters.length;
-    const randomPos = Math.floor(Math.random() * charLength);
-    const randomChar = getRandomAlphanumeric();
-    this.node.deleteCharacters(randomPos, randomPos + 1);
-    this.node.insertCharacters(randomPos , randomChar);
+    if (Math.random() > 0.85) {
+      const charLength = this.node.characters.length;
+      const randomPos = Math.floor(Math.random() * charLength);
+      const randomChar = getRandomAlphanumeric();
+      this.node.deleteCharacters(randomPos, randomPos + 1);
+      this.node.insertCharacters(randomPos , randomChar);
+    }
   }
 }
 
@@ -148,13 +180,12 @@ const detach = (instance: InstanceNode) => {
   if (!instance.removed) instance.detachInstance();
 }
 
-const supportedShapes = ["RECTANGLE", "ELLIPSE", "POLYGON", "STAR", "VECTOR"];
 export default async function () {
   const currentPage = figma.currentPage;
-  let nodes = currentPage.findAll() as SceneNode[];
   const shapes: DistortNode<SceneNode>[] = [];
   const docFonts: Set<FontName> = new Set<FontName>();
-
+  
+  let nodes = currentPage.findAll() as SceneNode[];
   nodes.forEach((node) => {
     if (node.type === "INSTANCE" && !node.removed) {
         detach(node);
@@ -170,18 +201,21 @@ export default async function () {
       node.getRangeAllFontNames(0, node.characters.length).forEach(font => docFonts.add(font));
       shapes.push(new DistortText(node as TextNode));
     }
-  })
+  });
 
   await Promise.all(Array.from(docFonts.entries()).map(([font]: [FontName, FontName]) => {
     return figma.loadFontAsync(font);
   }));
 
-  function run(){
-    let index = Math.floor(Math.random() * shapes.length);
-    let shape = shapes[index];
-    let methodName = shape.getMethod();
-    shape.run(methodName, Math.ceil(Math.random() * TIME_LENGTH), run);
+  function run() {
+    setTimeout(() => {
+      let index = Math.floor(Math.random() * shapes.length);
+      let shape = shapes[index];
+      let methodName = shape.getMethod();
+      console.log(shape.node, methodName);
+      shape.set();
+      shape.run(methodName, Math.ceil(Math.random() * TIME_LENGTH), run);
+    }, 10);
   }
-
   run();
 }
