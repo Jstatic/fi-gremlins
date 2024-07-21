@@ -28,9 +28,9 @@ export function hslToRgb(h: number, s: number, l: number): RGB {
       r = c; g = 0; b = x;
   }
 
-  r = (r + m);
-  g = (g + m);
-  b = (b + m);
+  r = Math.max((r + m), 0);
+  g = Math.max((g + m), 0);
+  b = Math.max((b + m), 0);
   return { r, g, b };
 }
 
@@ -53,12 +53,22 @@ export function rgbToHsl(r: number, g: number, b: number): HSL {
             case g: h = (b - r) / d + 2; break;
             case b: h = (r - g) / d + 4; break;
         }
-    
-        h /= 6;
+        // @ts-ignore
+        h /= 6; 
     }
-    
+    // @ts-ignore
     h = Math.round(h * 360);
     s = Math.round(s * 100);
     l = Math.round(l * 100);
     return { h, s, l };
 }
+
+export function changeColor(color:any, increment:number) {
+    let hsl = rgbToHsl(color.r,color.g,color.b)
+    hsl.h = (hsl.h + increment * 2) % 360;
+    hsl.s = Math.min(Math.max(hsl.s + increment * 1, 0), 100);
+    hsl.l = Math.min(Math.max(hsl.l + increment * 2, 0), 100);
+    if (hsl.h < 0) hsl.h = 360;
+    const rgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+    return rgb;
+  }
