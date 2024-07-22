@@ -24,3 +24,13 @@ export function randomImage() {
     const images = [nerdAlertImg, ratImg, menImg];
     return images[Math.floor(Math.random() * images.length)];
 }
+
+export function detach(instance: InstanceNode) {
+    if (instance.children) {
+        instance.children.forEach(child => {
+            if (child.type === "INSTANCE") return detach(child);
+        })
+    }
+    // Always check node.removed, otherwise it will cause memory/concurrency issues
+    if (!instance.removed) instance.detachInstance();
+}

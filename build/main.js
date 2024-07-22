@@ -159,6 +159,16 @@ function randomImage() {
   const images = [nerdalert_default, ratthew_default, men_default];
   return images[Math.floor(Math.random() * images.length)];
 }
+function detach(instance) {
+  if (instance.children) {
+    instance.children.forEach((child) => {
+      if (child.type === "INSTANCE")
+        return detach(child);
+    });
+  }
+  if (!instance.removed)
+    instance.detachInstance();
+}
 var makeRandom, makeRandomPos;
 var init_Utils = __esm({
   "src/Utils.ts"() {
@@ -176,13 +186,12 @@ var init_Utils = __esm({
 });
 
 // src/DistortionClasses.ts
-var RUN_SPEED, DistortNode, DistortShape, DistortText, DistortFrame, DistortAutoFrame;
+var DistortNode, DistortShape, DistortText, DistortFrame, DistortAutoFrame;
 var init_DistortionClasses = __esm({
   "src/DistortionClasses.ts"() {
     "use strict";
     init_ColorUtils();
     init_Utils();
-    RUN_SPEED = 1;
     DistortNode = class {
       constructor(node) {
         __publicField(this, "node");
@@ -197,7 +206,7 @@ var init_DistortionClasses = __esm({
         this.scaleFactor = makeRandomPos();
         this.methods = [];
       }
-      getMethod() {
+      getRandomMethod() {
         const total = this.methods.reduce((acc, m) => acc + m.value, 0);
         let randomNum = Math.random();
         const selected = this.methods.find((m) => {
@@ -217,7 +226,7 @@ var init_DistortionClasses = __esm({
       moveY() {
         this.node.y = this.node.y + this.y;
       }
-      run(funcName, count, callback) {
+      run(funcName, count, speed, callback) {
         setTimeout(() => {
           this.running = true;
           const exitFunc = this[funcName]();
@@ -226,8 +235,8 @@ var init_DistortionClasses = __esm({
             callback();
             return true;
           }
-          return this.run(funcName, count - 1, callback);
-        }, RUN_SPEED);
+          return this.run(funcName, count - 1, speed, callback);
+        }, speed);
       }
     };
     DistortShape = class extends DistortNode {
@@ -328,7 +337,7 @@ var init_DistortionClasses = __esm({
         return true;
       }
     };
-    DistortAutoFrame = class extends DistortNode {
+    DistortAutoFrame = class extends DistortFrame {
       constructor(node) {
         super(node);
         this.methods = [
@@ -337,13 +346,6 @@ var init_DistortionClasses = __esm({
           { name: "layoutSize", value: 10 },
           { name: "layoutMode", value: 10 }
         ];
-      }
-      resize() {
-        this.node.resize(this.node.width + Math.abs(this.x), this.node.height + Math.abs(this.y));
-      }
-      clip() {
-        this.node.clipsContent = false;
-        return true;
       }
       layoutMode() {
         if (this.node.layoutMode === "HORIZONTAL")
@@ -397,31 +399,23 @@ async function main_default() {
     setTimeout(() => {
       let index = Math.floor(Math.random() * shapes.length);
       let shape = shapes[index];
-      let methodName = shape.getMethod();
+      let methodName = shape.getRandomMethod();
       console.log(shape.node, methodName);
       shape.set();
-      shape.run(methodName, Math.ceil(Math.random() * TIME_LENGTH), run);
+      shape.run(methodName, Math.ceil(Math.random() * RUN_TIME), RUN_SPEED, run);
     }, 10);
   }
   run();
 }
-var TIME_LENGTH, supportedShapes, detach;
+var RUN_TIME, RUN_SPEED, supportedShapes;
 var init_main = __esm({
   "src/main.ts"() {
     "use strict";
     init_DistortionClasses();
-    TIME_LENGTH = 50;
+    init_Utils();
+    RUN_TIME = 50;
+    RUN_SPEED = 1;
     supportedShapes = ["RECTANGLE", "ELLIPSE", "POLYGON", "STAR", "VECTOR"];
-    detach = (instance) => {
-      if (instance.children) {
-        instance.children.forEach((child) => {
-          if (child.type === "INSTANCE")
-            return detach(child);
-        });
-      }
-      if (!instance.removed)
-        instance.detachInstance();
-    };
   }
 });
 

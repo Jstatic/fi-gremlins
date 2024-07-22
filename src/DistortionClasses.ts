@@ -1,8 +1,6 @@
 import { changeColor, randomColor } from "./ColorUtils";
 import { makeRandom, makeRandomPos, getRandomAlphanumeric, clone, randomImage } from "./Utils";
 
-const RUN_SPEED = 1;
-
 type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNode;
   
   interface method {
@@ -25,7 +23,7 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
       this.scaleFactor = makeRandomPos();
       this.methods = [];
     }
-    getMethod() {
+    getRandomMethod() {
       const total = this.methods.reduce((acc, m) => acc + m.value, 0);
       let randomNum = Math.random();
       // @ts-ignore
@@ -46,7 +44,7 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
     moveY() {
       this.node.y = this.node.y + this.y;
     }
-    run(funcName: string, count: number, callback: any): any {
+    run(funcName: string, count: number, speed: number, callback: any): any {
       setTimeout(() => {
         this.running = true;
         // @ts-ignore
@@ -56,8 +54,8 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
           callback();
           return true;
         }
-        return this.run(funcName, count - 1, callback);
-      }, RUN_SPEED);
+        return this.run(funcName, count - 1, speed, callback);
+      }, speed);
     }
   }
   
@@ -146,8 +144,10 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
     }
   }
 
-  export class DistortFrame extends DistortNode<FrameNode> {
-    constructor(node: FrameNode) {
+  // Frame Classes
+
+  export class DistortFrame<T extends FrameNode> extends DistortNode<FrameNode> {
+    constructor(node: T) {
         super(node);
         this.methods = [
           {name: "clip", value: 10},
@@ -163,7 +163,7 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
     }
   }
 
-  export class DistortAutoFrame extends DistortNode<FrameNode> {
+  export class DistortAutoFrame extends DistortFrame<FrameNode> {
     constructor(node: FrameNode) {
         super(node);
         this.methods = [
@@ -172,13 +172,6 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
           {name: "layoutSize",  value: 10},
           {name: "layoutMode", value: 10}
         ]
-    }
-    resize() {
-        this.node.resize(this.node.width + Math.abs(this.x), this.node.height + Math.abs(this.y));
-    }
-    clip() {
-        this.node.clipsContent = false;
-        return true;
     }
     layoutMode() {
         if (this.node.layoutMode === "HORIZONTAL") this.node.layoutMode = "VERTICAL"
