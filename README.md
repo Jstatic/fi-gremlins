@@ -2,8 +2,7 @@
 
 Finally a Figma Plugin that makes your designs worse.
 
-<img width="780" alt="image" src="https://github.com/user-attachments/assets/f25adfef-7b6d-4266-95bf-18cbbe64724a">
-
+![image](https://github.com/user-attachments/assets/b0f1c98e-de92-4c4f-a2e1-b974b3dd4881)
 
 ## Installation Instructions
 
