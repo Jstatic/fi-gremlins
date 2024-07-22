@@ -24,7 +24,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 
-// src/colorTools.ts
+// src/ColorUtils.ts
 function hslToRgb(h, s, l) {
   h = (h % 360 + 360) % 360;
   s = Math.max(0, Math.min(100, s)) / 100;
@@ -110,8 +110,8 @@ function randomColor() {
     b
   };
 }
-var init_colorTools = __esm({
-  "src/colorTools.ts"() {
+var init_ColorUtils = __esm({
+  "src/ColorUtils.ts"() {
     "use strict";
   }
 });
@@ -146,7 +146,7 @@ var init_men = __esm({
   }
 });
 
-// src/Classes.ts
+// src/Utils.ts
 function getRandomAlphanumeric() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const randomIndex = Math.floor(Math.random() * chars.length);
@@ -159,21 +159,30 @@ function randomImage() {
   const images = [nerdalert_default, ratthew_default, men_default];
   return images[Math.floor(Math.random() * images.length)];
 }
-var RUN_SPEED, makeRandom, makeRandomPos, DistortNode, DistortShape, DistortText, DistortFrame, DistortAutoFrame;
-var init_Classes = __esm({
-  "src/Classes.ts"() {
+var makeRandom, makeRandomPos;
+var init_Utils = __esm({
+  "src/Utils.ts"() {
     "use strict";
-    init_colorTools();
     init_nerdalert();
     init_ratthew();
     init_men();
-    RUN_SPEED = 1;
     makeRandom = () => {
       return Math.random() * 3 - 1;
     };
     makeRandomPos = () => {
       return Math.random() * 2;
     };
+  }
+});
+
+// src/DistortionClasses.ts
+var RUN_SPEED, DistortNode, DistortShape, DistortText, DistortFrame, DistortAutoFrame;
+var init_DistortionClasses = __esm({
+  "src/DistortionClasses.ts"() {
+    "use strict";
+    init_ColorUtils();
+    init_Utils();
+    RUN_SPEED = 1;
     DistortNode = class {
       constructor(node) {
         __publicField(this, "node");
@@ -211,8 +220,8 @@ var init_Classes = __esm({
       run(funcName, count, callback) {
         setTimeout(() => {
           this.running = true;
-          this[funcName]();
-          if (count < 0 || funcName === "imageFill" || funcName === "clip" || funcName === "layoutMode") {
+          const exitFunc = this[funcName]();
+          if (count < 0 || exitFunc === true) {
             this.running = false;
             callback();
             return true;
@@ -267,6 +276,7 @@ var init_Classes = __esm({
             scaleMode: "FILL"
           }
         ];
+        return true;
       }
     };
     DistortText = class extends DistortNode {
@@ -315,6 +325,7 @@ var init_Classes = __esm({
       }
       clip() {
         this.node.clipsContent = false;
+        return true;
       }
     };
     DistortAutoFrame = class extends DistortNode {
@@ -332,12 +343,14 @@ var init_Classes = __esm({
       }
       clip() {
         this.node.clipsContent = false;
+        return true;
       }
       layoutMode() {
         if (this.node.layoutMode === "HORIZONTAL")
           this.node.layoutMode = "VERTICAL";
         if (this.node.layoutMode === "VERTICAL")
           this.node.layoutMode = "HORIZONTAL";
+        return true;
       }
       layoutSize() {
         this.node.itemSpacing += this.scaleFactor;
@@ -396,7 +409,7 @@ var TIME_LENGTH, supportedShapes, detach;
 var init_main = __esm({
   "src/main.ts"() {
     "use strict";
-    init_Classes();
+    init_DistortionClasses();
     TIME_LENGTH = 50;
     supportedShapes = ["RECTANGLE", "ELLIPSE", "POLYGON", "STAR", "VECTOR"];
     detach = (instance) => {

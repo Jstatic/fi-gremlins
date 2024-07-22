@@ -1,34 +1,9 @@
-import { changeColor, randomColor } from "./colorTools";
-import nerdAlertImg from './images/nerdalert';
-import ratImg from './images/ratthew';
-import menImg from './images/men';
+import { changeColor, randomColor } from "./ColorUtils";
+import { makeRandom, makeRandomPos, getRandomAlphanumeric, clone, randomImage } from "./Utils";
 
 const RUN_SPEED = 1;
 
 type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNode;
-
-  const makeRandom = () => {
-    return (Math.random() * 3 - 1);
-  }
-
-  const makeRandomPos = () => {
-    return (Math.random() * 2);
-  }
-  
-  function getRandomAlphanumeric(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const randomIndex = Math.floor(Math.random() * chars.length);
-    return chars[randomIndex];
-  }
-  
-  function clone(val: any) {
-    return JSON.parse(JSON.stringify(val))
-  }
-  
-  function randomImage() {
-    const images = [nerdAlertImg, ratImg, menImg];
-    return images[Math.floor(Math.random() * images.length)];
-  }
   
   interface method {
     name: string;
@@ -75,8 +50,8 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
       setTimeout(() => {
         this.running = true;
         // @ts-ignore
-        this[funcName]();
-        if (count < 0 || funcName === "imageFill" || funcName === "clip" || funcName === "layoutMode") {
+        const exitFunc = this[funcName]();
+        if (count < 0 || exitFunc === true) {
           this.running = false;
           callback();
           return true;
@@ -133,6 +108,7 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
           scaleMode: 'FILL'
         }
       ]
+      return true;
     }
   }
   
@@ -183,6 +159,7 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
     }
     clip() {
         this.node.clipsContent = false;
+        return true;
     }
   }
 
@@ -201,10 +178,12 @@ type ShapeNode = RectangleNode | EllipseNode | PolygonNode | StarNode | VectorNo
     }
     clip() {
         this.node.clipsContent = false;
+        return true;
     }
     layoutMode() {
         if (this.node.layoutMode === "HORIZONTAL") this.node.layoutMode = "VERTICAL"
         if (this.node.layoutMode === "VERTICAL") this.node.layoutMode = "HORIZONTAL"
+        return true;
     }
     layoutSize() {
         this.node.itemSpacing += this.scaleFactor;

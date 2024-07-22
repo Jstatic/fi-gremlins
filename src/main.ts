@@ -1,4 +1,4 @@
-import {DistortNode, DistortShape, DistortText, DistortFrame, DistortAutoFrame} from './Classes'
+import {DistortNode, DistortShape, DistortText, DistortFrame, DistortAutoFrame} from './DistortionClasses'
 const TIME_LENGTH = 50;
 
 const supportedShapes = ["RECTANGLE", "ELLIPSE", "POLYGON", "STAR", "VECTOR"];
