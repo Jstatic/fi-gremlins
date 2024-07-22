@@ -2,6 +2,9 @@
 
 Finally a Figma Plugin that makes your designs worse.
 
+<img width="780" alt="image" src="https://github.com/user-attachments/assets/f25adfef-7b6d-4266-95bf-18cbbe64724a">
+
+
 ## Installation Instructions
 
 1. In the Figma desktop app, open a Figma document.
